@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Deep Obsidian Blue Background */
+    --background: 224 71% 4%;
+    --foreground: 210 40% 98%;
+    
+    /* Glassmorphism Card Base */
+    --card: 224 71% 7%;
+    --card-foreground: 210 40% 98%;
+    
+    /* Neon Accents */
+    --primary: 199 89% 48%; /* Neon Cyan */
+    --primary-foreground: 210 40% 98%;
+    
+    --secondary: 271 81% 56%; /* Neon Purple */
+    --secondary-foreground: 210 40% 98%;
+
+    /* Ancient Gold */
+    --gold: 45 93% 47%; /* Tailwind yellow-500 #EAB308 */
+    --gold-foreground: 210 40% 98%;
+
+    --border: 224 71% 15%;
+    --ring: 199 89% 48%;
+    
+    /* Cyber Error Red */
+    --destructive: 350 89% 60%;
+    --destructive-foreground: 210 40% 98%;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased min-h-screen overflow-x-hidden;
+    
+    /* Sacred Geometry & Grid hybrid background */
+    background-image: 
+      radial-gradient(circle at 50% 0%, rgba(234, 179, 8, 0.05) 0%, transparent 60%),
+      linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 100% 100%, 50px 50px, 50px 50px;
+    background-attachment: fixed;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-card/60 backdrop-blur-xl border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.5)];
+  }
+  .neon-glow {
+    @apply shadow-[0_0_15px_rgba(14,165,233,0.5)];
+  }
+  .neon-glow-purple {
+    @apply shadow-[0_0_15px_rgba(168,85,247,0.5)];
+  }
+  .gold-glow {
+    @apply shadow-[0_0_25px_rgba(234,179,8,0.3)];
+  }
+  .text-glow {
+    text-shadow: 0 0 10px rgba(14,165,233,0.7);
+  }
+  .text-glow-gold {
+    text-shadow: 0 0 15px rgba(234,179,8,0.6);
+  }
+}

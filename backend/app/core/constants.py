@@ -1,0 +1,16 @@
+# AryaCrypt Constants
+
+# Password Hashing Constants
+PWD_HASH_SCHEMES = ["bcrypt"]
+PWD_HASH_DEPRECATED = "auto"
+
+# Encryption Metadata Defaults
+DEFAULT_ENCRYPTION_ALGORITHM = "AES-256-GCM"
+DEFAULT_KDF = "PBKDF2-HMAC-SHA256"
+DEFAULT_PBKDF2_ITERATIONS = 600000
+
+# File Upload Limits
+MAX_UPLOAD_SIZE_BYTES = 100 * 1024 * 1024  # 100 MB
+
+# Timeouts
+TOKEN_EXPIRE_MINUTES = 30
