@@ -21,8 +21,9 @@ backend/storage/
 research/benchmarks/results/*.json
 research/results/*.json
 research/results/*.csv
-research/results/*.md
 research/results/*.png
-!research/results/PERFORMANCE_ANALYSIS.md
-!research/results/LIMITATIONS.md
-!research/results/RESEARCH_SUMMARY.md
+
+# Markdown — ignore all .md except README.md (any folder)
+*.md
+!README.md
+!**/README.md
