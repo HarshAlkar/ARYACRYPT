@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, ShieldCheck, Download, AlertTriangle, ArrowRight } from 'lucide-react';
 import { DashboardLayout } from '../layouts/DashboardLayout';
-import { Card } from '../components/ui/Card';
+import { Card } from '@/components/ui/card';
 import { DragDropZone } from '../components/ui/DragDropZone';
 import { PasswordInput } from '../components/ui/PasswordInput';
 import { fileService, type FileResponseDTO } from '../services/file.service';
@@ -97,9 +97,10 @@ export const Encrypt: React.FC = () => {
             Secure Encryption
           </h1>
           <p className="text-slate-400 max-w-xl mx-auto">
-            Upload your sensitive files and protect them using military-grade AES-256-GCM 
-            backed by the phonetic AryaCrypt framework.
+            Upload files for encryption with AES-256-GCM after AryaCrypt password
+            preprocessing and PBKDF2-HMAC-SHA256 key derivation.
           </p>
+          <p className="text-xs font-mono text-slate-600">ARYACRYPT v1.1.0</p>
         </div>
 
         <AnimatePresence mode="wait">

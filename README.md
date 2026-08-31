@@ -1,90 +1,99 @@
-# AryaCrypt
+# ARYACRYPT
 
-AryaCrypt is an enterprise-grade web application for secure file encryption utilizing the novel Aryabhata-based cryptographic framework. This project features a strict separation of concerns with a modern React frontend and a robust Python backend.
+**Cryptographic Security Framework**
 
-## Prerequisites
+A TIVRA Technology
 
-Before you begin, ensure you have the following installed on your machine:
-*   **Node.js** (v18 or higher)
-*   **npm** (Node Package Manager)
-*   **Python** (v3.9 or higher)
-*   **PostgreSQL** (Running locally or accessible via network)
+AryaCrypt adds an **Aryabhata-inspired password preprocessing / key-generation layer**
+before unmodified **PBKDF2-HMAC-SHA256** and **AES-256-GCM**. It does not replace AES.
 
----
+## Overview
 
-## 🛠️ Backend Setup & Installation
+AryaCrypt is a research-oriented cryptographic framework and web platform for encrypting
+files into a portable `.arya` container. Python and Node SDKs implement the same
+[Specification v1.1.0](docs/spec/AryaCrypt_v1.1.0.md) so ciphertext is cross-compatible.
 
-The backend is built with Python (FastAPI).
+## Architecture
 
-### 1. Navigate to the backend directory
+| Path | Role |
+|------|------|
+| [`python-sdk/`](python-sdk/) | Official Python package (`pip install aryacrypt`) |
+| [`node-sdk/`](node-sdk/) | Official Node/TypeScript package (`npm install aryacrypt`) |
+| [`backend/`](backend/) | FastAPI web API (uses the Python SDK) |
+| [`frontend/`](frontend/) | React web application |
+| [`docs/spec/`](docs/spec/) | Canonical specification v1.1.0 + test vectors |
+| [`research/`](research/) | Background research notes |
+
+## Security model
+
+1. Password → Unicode NFC → Aryabhata RomanMapper stream (current algorithm path)
+2. PBKDF2-HMAC-SHA256 (600,000 iterations, 16-byte salt, 32-byte key)
+3. AES-256-GCM (12-byte nonce)
+4. Package as `.arya` (`ARYA` + BE u32 JSON header + ciphertext)
+
+See [docs/brand/IDENTITY.md](docs/brand/IDENTITY.md) for product positioning.
+
+## Python SDK
+
+```bash
+pip install -e ./python-sdk
+python -c "from aryacrypt import AryaCrypt; c=AryaCrypt(); print(c.decrypt(c.encrypt(b'hi','password1'),'password1'))"
+```
+
+## Node.js SDK
+
+```bash
+cd node-sdk && npm install && npm run build
+```
+
+## Web platform
+
+### Prerequisites
+
+- Node.js 18+
+- Python 3.10+
+- PostgreSQL
+
+### Backend
+
 ```bash
 cd backend
-```
-
-### 2. Create and activate a Virtual Environment
-**For Windows:**
-```bash
 python -m venv venv
-venv\Scripts\activate
-```
-**For macOS/Linux:**
-```bash
-python3 -m venv venv
-source venv/bin/activate
-```
-
-### 3. Install Dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Environment Variables
-1. Copy the example environment file:
-   ```bash
-   cp .env.example .env
-   ```
-2. Open `.env` and configure your database credentials and secret keys.
-
-### 5. Run Database Migrations (Alembic)
-Ensure your PostgreSQL database is running, then apply migrations:
-```bash
+# Windows: venv\Scripts\activate
+pip install -r requirements.txt   # installs local ../python-sdk
+# configure .env from .env.example
 alembic upgrade head
-```
-
-### 6. Start the Backend Server
-Run the FastAPI development server:
-```bash
 uvicorn app.main:app --reload
 ```
-The backend API will now be running at `http://localhost:8000`.
 
----
+### Frontend
 
-## 💻 Frontend Setup & Installation
-
-The frontend is a React Application built with Vite and TypeScript.
-
-### 1. Navigate to the frontend directory
-Open a **new terminal window** (keep the backend running in the other) and run:
 ```bash
 cd frontend
-```
-
-### 2. Install Dependencies
-```bash
 npm install
-```
-
-### 3. Start the Development Server
-```bash
 npm run dev
 ```
-The frontend application will now be running, typically at `http://localhost:5173`.
 
----
+Open `http://localhost:5173`.
 
-## Usage
+## Research
 
-1. Open your browser and navigate to the frontend URL (`http://localhost:5173`).
-2. Create an account or log in.
-3. Use the interface to securely upload, encrypt, and decrypt files!
+Research materials on Aryabhata encoding and system design live under [`research/`](research/).
+
+## Documentation
+
+- [AryaCrypt Specification v1.1.0](docs/spec/AryaCrypt_v1.1.0.md)
+- [Test vectors](docs/spec/test-vectors/vectors.json)
+- [Auth session model](docs/auth-session.md)
+- [Brand identity](docs/brand/IDENTITY.md)
+
+## Credits
+
+- Developed by **TIVRA**
+- Created by **Harsh Alkar**
+
+## License
+
+MIT License — Copyright (c) 2026 TIVRA
+
+See root [`LICENSE`](LICENSE) and the SDK package licenses.

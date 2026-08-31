@@ -1,100 +1,190 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Lock, Zap, FileKey } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { BrandLockup } from '@/components/brand/BrandLockup';
+import { BRAND, COMPANY_NAME, PRODUCT_NAME_DISPLAY } from '@/brand/constants';
 
-const features = [
-  {
-    icon: <Lock className="h-6 w-6 text-primary" />,
-    title: "Unbreakable AES-256",
-    description: "Industry standard authenticated encryption backed by Galois/Counter Mode."
-  },
-  {
-    icon: <FileKey className="h-6 w-6 text-accent" />,
-    title: "Aryabhata Framework",
-    description: "Novel mathematical diffusion mapping numeric seeds into complex phonetic entropy."
-  },
-  {
-    icon: <Shield className="h-6 w-6 text-primary" />,
-    title: "Zero-Knowledge",
-    description: "Your keys never leave your device. Complete cryptographic privacy."
-  },
-  {
-    icon: <Zap className="h-6 w-6 text-accent" />,
-    title: "Lightning Fast",
-    description: "Optimized asynchronous processing via modern backend technologies."
-  }
-];
+const fade = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } };
 
 export const LandingPage: React.FC = () => {
   return (
-    <div className="relative isolate overflow-hidden min-h-[calc(100vh-4rem)]">
-      {/* Background glow effects */}
-      <div className="absolute top-0 -z-10 h-full w-full bg-background overflow-hidden">
-        <div className="absolute bottom-auto left-auto right-10 top-10 h-[400px] w-[400px] rounded-full bg-primary/15 blur-[100px] animate-pulse"></div>
-        <div className="absolute top-auto bottom-10 left-10 h-[300px] w-[300px] rounded-full bg-accent/15 blur-[100px]"></div>
-      </div>
+    <div className="relative isolate overflow-hidden">
+      {/* Hero */}
+      <section className="container mx-auto px-4 pt-20 pb-24 sm:pt-28 lg:pt-32">
+        <div className="max-w-3xl mx-auto text-center">
+          <motion.div
+            {...fade}
+            transition={{ duration: 0.5 }}
+            className="flex justify-center"
+          >
+            <BrandLockup variant="hero" to={null} />
+          </motion.div>
 
-      <div className="container mx-auto px-4 pt-24 pb-20 sm:pt-32 lg:pt-40">
-        <div className="text-center max-w-4xl mx-auto">
-          <motion.h1 
-            initial={{ opacity: 0, y: 30 }}
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="text-4xl font-extrabold tracking-tight sm:text-6xl lg:text-7xl mb-6"
+            transition={{ duration: 0.45, delay: 0.15 }}
+            className="mt-8 text-base sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed"
           >
-            The Future of Encryption, <br className="hidden sm:block"/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">
-              Rooted in History.
-            </span>
-          </motion.h1>
-          
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-lg sm:text-xl text-gray-400 mb-10 max-w-2xl mx-auto"
-          >
-            AryaCrypt merges the ancient Aryabhata mathematical numbering system with modern AES-256-GCM to deliver unparalleled file security.
+            A password preprocessing and key-generation framework that integrates
+            Aryabhata-inspired linguistic diffusion with PBKDF2-HMAC-SHA256 and
+            AES-256-GCM — without replacing established cryptographic primitives.
           </motion.p>
-          
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            transition={{ duration: 0.45, delay: 0.25 }}
+            className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3"
           >
-            <Link to="/register" className="w-full sm:w-auto bg-primary text-primary-foreground font-semibold px-8 py-3 rounded-lg hover:bg-primary/90 transition-all shadow-[0_0_20px_rgba(34,197,94,0.4)] hover:shadow-[0_0_30px_rgba(34,197,94,0.6)]">
+            <Link
+              to="/register"
+              className="w-full sm:w-auto bg-primary text-primary-foreground font-semibold px-8 py-3 rounded-lg hover:bg-primary/90 transition-colors"
+            >
               Start Encrypting
             </Link>
-            <a href="#features" className="w-full sm:w-auto bg-card text-card-foreground border border-border font-semibold px-8 py-3 rounded-lg hover:border-gray-600 transition-colors">
-              Learn More
+            <a
+              href="#framework"
+              className="w-full sm:w-auto bg-transparent text-slate-200 border border-border font-semibold px-8 py-3 rounded-lg hover:border-slate-500 transition-colors"
+            >
+              Explore Framework
             </a>
           </motion.div>
         </div>
-      </div>
+      </section>
 
-      {/* Features Section */}
-      <div id="features" className="container mx-auto px-4 py-24 border-t border-border/50 relative z-10 bg-background/50 backdrop-blur-sm">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {features.map((feature, index) => (
-            <motion.div 
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              viewport={{ once: true, margin: "-100px" }}
-              className="bg-card/50 backdrop-blur-md border border-border rounded-xl p-6 hover:border-primary/50 transition-all group hover:-translate-y-1"
-            >
-              <div className="mb-4 bg-background w-12 h-12 rounded-lg flex items-center justify-center border border-border group-hover:border-primary/50 transition-colors">
-                {feature.icon}
-              </div>
-              <h3 className="text-xl font-bold mb-2 text-gray-100">{feature.title}</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">{feature.description}</p>
-            </motion.div>
-          ))}
+      {/* What is AryaCrypt */}
+      <section id="framework" className="border-t border-border/50 py-20">
+        <div className="container mx-auto px-4 max-w-3xl">
+          <h2 className="text-2xl font-bold text-slate-100 mb-4">What is AryaCrypt?</h2>
+          <p className="text-slate-400 leading-relaxed">
+            {PRODUCT_NAME_DISPLAY} is a cryptographic security framework that transforms
+            a password through an Aryabhata-inspired RomanMapper pipeline before key
+            derivation. The resulting stream feeds standard PBKDF2-HMAC-SHA256 (600,000
+            iterations), which produces the key for AES-256-GCM file encryption. Output
+            is packaged in the portable <span className="font-mono text-slate-300">.arya</span> container format.
+          </p>
         </div>
-      </div>
+      </section>
+
+      {/* How it works */}
+      <section className="border-t border-border/40 py-20 bg-card/20">
+        <div className="container mx-auto px-4 max-w-3xl">
+          <h2 className="text-2xl font-bold text-slate-100 mb-6">How it works</h2>
+          <ol className="space-y-4 text-slate-400 list-decimal list-inside leading-relaxed">
+            <li>
+              <span className="text-slate-200 font-medium">Preprocess</span> — Unicode NFC
+              normalization and Aryabhata Base-100 phonetic diffusion (RomanMapper).
+            </li>
+            <li>
+              <span className="text-slate-200 font-medium">Derive</span> — PBKDF2-HMAC-SHA256
+              with a random 16-byte salt (600,000 iterations, 32-byte key).
+            </li>
+            <li>
+              <span className="text-slate-200 font-medium">Encrypt</span> — AES-256-GCM with a
+              random 12-byte nonce; authenticated ciphertext and tag.
+            </li>
+            <li>
+              <span className="text-slate-200 font-medium">Package</span> — Serialize metadata
+              and ciphertext into a versioned <span className="font-mono text-slate-300">.arya</span> file.
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      {/* Security architecture */}
+      <section className="border-t border-border/40 py-20">
+        <div className="container mx-auto px-4 max-w-3xl">
+          <h2 className="text-2xl font-bold text-slate-100 mb-4">Security architecture</h2>
+          <p className="text-slate-400 leading-relaxed mb-4">
+            AryaCrypt does not invent a new cipher. It adds a deterministic preprocessing
+            layer ahead of well-studied primitives so that key material is derived from a
+            transformed password stream rather than raw UTF-8 password bytes (for the
+            current Aryabhata algorithm path).
+          </p>
+          <ul className="space-y-2 text-slate-400 text-sm">
+            <li className="flex gap-2"><span className="text-sky-400/80">•</span> Authenticated encryption: AES-256-GCM</li>
+            <li className="flex gap-2"><span className="text-sky-400/80">•</span> Key derivation: PBKDF2-HMAC-SHA256 (600k iterations)</li>
+            <li className="flex gap-2"><span className="text-sky-400/80">•</span> Fresh salt and nonce per encryption</li>
+            <li className="flex gap-2"><span className="text-sky-400/80">•</span> Spec v{BRAND.version} with cross-language test vectors</li>
+          </ul>
+        </div>
+      </section>
+
+      {/* SDKs + Web */}
+      <section className="border-t border-border/40 py-20 bg-card/20">
+        <div className="container mx-auto px-4 max-w-5xl">
+          <h2 className="text-2xl font-bold text-slate-100 mb-8 text-center">Platforms</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                title: 'Python SDK',
+                body: 'pip install aryacrypt — encrypt and decrypt .arya files with full Spec v1.1.0 compatibility.',
+              },
+              {
+                title: 'Node.js SDK',
+                body: 'npm install aryacrypt — TypeScript SDK sharing the same format and vectors as Python.',
+              },
+              {
+                title: 'Web platform',
+                body: 'Authenticated vault for encrypt, decrypt, storage, analytics, and account settings.',
+              },
+            ].map((card) => (
+              <div
+                key={card.title}
+                className="border border-border/60 rounded-lg p-6 bg-background/40"
+              >
+                <h3 className="text-lg font-semibold text-slate-100 mb-2">{card.title}</h3>
+                <p className="text-sm text-slate-400 leading-relaxed">{card.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Research + stack */}
+      <section className="border-t border-border/40 py-20">
+        <div className="container mx-auto px-4 max-w-3xl space-y-10">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-100 mb-4">Research contribution</h2>
+            <p className="text-slate-400 leading-relaxed">
+              AryaCrypt explores historical Aryabhata alphasyllabic encoding as a software
+              diffusion step before modern KDF usage — bridging research on classical Indian
+              mathematics with practical file encryption tooling. See the monorepo{' '}
+              <span className="font-mono text-slate-300 text-sm">research/</span> and{' '}
+              <span className="font-mono text-slate-300 text-sm">docs/spec/</span> materials.
+            </p>
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-slate-100 mb-4">Technology stack</h2>
+            <p className="text-slate-400 leading-relaxed text-sm">
+              React + Vite frontend · FastAPI + PostgreSQL backend · Official Python and
+              Node SDKs · Spec v{BRAND.version} test vectors · Cross-language compatibility checks
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* About TIVRA + Creator */}
+      <section className="border-t border-border/40 py-20 bg-card/20">
+        <div className="container mx-auto px-4 max-w-3xl grid gap-10 sm:grid-cols-2">
+          <div>
+            <h2 className="text-xl font-bold text-slate-100 mb-3">About {COMPANY_NAME}</h2>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              {COMPANY_NAME} is a technology studio building research-oriented security and
+              developer tools. AryaCrypt is published as {BRAND.companyLine}.
+            </p>
+            <p className="mt-3 text-xs tracking-wide text-sky-400/80">{BRAND.companyLine}</p>
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-slate-100 mb-3">Creator</h2>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              {BRAND.creator}. Founder attribution for the AryaCrypt framework and related
+              research — distinct from the primary product identity.
+            </p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };

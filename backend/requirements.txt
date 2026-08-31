@@ -32,3 +32,7 @@ typing_extensions==4.16.0
 uvicorn==0.52.1
 pydantic-settings==2.8.0
 email-validator==2.3.0
+pytest==8.3.5
+httpx==0.28.1
+# Official crypto SDK (local path — same package as pip install aryacrypt)
+-e ../python-sdk

@@ -1,0 +1,3 @@
+# Research-only dependencies for benchmarks and report graphs.
+matplotlib>=3.8,<4
+psutil>=5.9,<7

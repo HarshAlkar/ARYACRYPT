@@ -18,7 +18,3 @@ class File(Base):
 
     # Relationships
     user = relationship("User", back_populates="files")
-    
-    # These will be uncommented or added later when their respective models are created
-    # key_metadata = relationship("KeysMetadata", back_populates="file", uselist=False, cascade="all, delete-orphan")
-    # encryption_logs = relationship("EncryptionLog", back_populates="file", cascade="all, delete-orphan")

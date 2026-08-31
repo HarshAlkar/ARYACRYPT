@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Unlock, FileCheck, Download, AlertTriangle, ArrowRight, HardDrive, X } from 'lucide-react';
 import { DashboardLayout } from '../layouts/DashboardLayout';
-import { Card } from '../components/ui/Card';
+import { Card } from '@/components/ui/card';
 import { DragDropZone } from '../components/ui/DragDropZone';
 import { PasswordInput } from '../components/ui/PasswordInput';
 import { fileService, type FileResponseDTO } from '../services/file.service';
@@ -155,6 +155,7 @@ export const Decrypt: React.FC = () => {
           <p className="text-slate-400 max-w-xl mx-auto">
             Unlock a vault file directly, or upload a `.arya` payload and restore with your password.
           </p>
+          <p className="text-xs font-mono text-slate-600">ARYACRYPT v1.1.0</p>
         </div>
 
         <AnimatePresence mode="wait">

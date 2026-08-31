@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Search, Filter, Trash2, HardDrive, FileKey2, ChevronLeft, ChevronRight, Loader2, ShieldCheck, Download, Unlock } from 'lucide-react';
 import { DashboardLayout } from '../layouts/DashboardLayout';
-import { Card } from '../components/ui/Card';
+import { Card } from '@/components/ui/card';
 import { fileService, type FileResponseDTO } from '../services/file.service';
 
 export const Vault: React.FC = () => {
@@ -107,6 +107,7 @@ export const Vault: React.FC = () => {
               My Vault
             </h1>
             <p className="text-slate-400 mt-1">Manage, download, or decrypt your encrypted payload history.</p>
+            <p className="text-xs text-slate-600 mt-1">ARYACRYPT · A TIVRA Technology</p>
           </div>
           
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
@@ -199,7 +200,7 @@ export const Vault: React.FC = () => {
                         </span>
                       </td>
                       <td className="p-4">
-                        <span className="text-xs text-slate-400 font-medium">Aryabhata v1.1</span>
+                        <span className="text-xs text-slate-400 font-medium">AryaCrypt v1.1.0</span>
                       </td>
                       <td className="p-4">
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">

@@ -1,22 +1,11 @@
-from app.framework.aryabhata.preprocess import AryabhataPreprocessor, AryabhataPreprocessResult
-from app.framework.aryabhata.roman_mapper import RomanMapper
-from app.framework.aryabhata.stream_generator import StreamGenerator
-from app.framework.aryabhata.positional import PositionalCalculator
-from app.framework.aryabhata.encoder import AryabhataEncoder
-from app.framework.aryabhata.constants import (
-    BASE_DIVISOR,
-    VARGA_MAX_VALUE,
-    MIN_PASSWORD_LENGTH,
-)
+# Aryabhata framework (legacy location)
 
-__all__ = [
-    "AryabhataPreprocessor",
-    "AryabhataPreprocessResult",
-    "RomanMapper",
-    "StreamGenerator",
-    "PositionalCalculator",
-    "AryabhataEncoder",
-    "BASE_DIVISOR",
-    "VARGA_MAX_VALUE",
-    "MIN_PASSWORD_LENGTH",
-]
+Production crypto now lives in the official **`aryacrypt`** Python SDK
+(`python-sdk/`). Prefer:
+
+```python
+from aryacrypt import AryaCrypt
+```
+
+Modules remaining here are kept only for historical/research reference and are
+not used by the FastAPI file endpoints.

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card } from './Card';
+import { Card } from './card';
 import type { LucideIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -41,7 +41,7 @@ export const StatBox: React.FC<StatBoxProps> = ({ title, value, icon: Icon, tren
         <span className="text-3xl font-bold tracking-tight text-slate-50 text-glow">{value}</span>
         {trend && (
           <span className="text-xs font-medium text-emerald-400 mt-1">
-            {trend} from last month
+            {trend} vs prior week
           </span>
         )}
       </div>

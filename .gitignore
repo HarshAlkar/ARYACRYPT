@@ -1,0 +1,28 @@
+# Python
+**/__pycache__/
+**/*.egg-info/
+**/.pytest_cache/
+**/venv/
+**/.venv/
+*.pyc
+
+# Node
+node-sdk/node_modules/
+node-sdk/dist/
+frontend/node_modules/
+frontend/dist/
+
+# Env / local
+**/.env
+backend/storage/
+*.arya
+
+# Research benchmark outputs (scripts + .gitkeep tracked; measured artifacts local)
+research/benchmarks/results/*.json
+research/results/*.json
+research/results/*.csv
+research/results/*.md
+research/results/*.png
+!research/results/PERFORMANCE_ANALYSIS.md
+!research/results/LIMITATIONS.md
+!research/results/RESEARCH_SUMMARY.md

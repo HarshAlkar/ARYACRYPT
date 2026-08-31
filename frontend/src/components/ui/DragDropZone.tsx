@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { UploadCloud, File as FileIcon, X, CheckCircle2 } from 'lucide-react';
-import { Card } from './Card';
+import { Card } from './card';
 
 interface DragDropZoneProps {
   onFileSelect: (file: File | null) => void;
