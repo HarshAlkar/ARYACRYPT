@@ -82,7 +82,6 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
   const BrandFooter = (
     <div className="px-6 py-4 border-t border-white/5 space-y-1">
       <p className="font-mono text-xs text-slate-500">{BRAND.versionLabel}</p>
-      <p className="text-[0.65rem] tracking-wide text-slate-600">{BRAND.companyLine}</p>
     </div>
   );
 

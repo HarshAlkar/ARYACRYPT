@@ -10,7 +10,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { loginSchema, type LoginData, authService } from '@/services/auth.service';
 import { BrandLockup } from '@/components/brand/BrandLockup';
-import { BRAND, PRODUCT_NAME } from '@/brand/constants';
+import { PRODUCT_NAME } from '@/brand/constants';
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -55,7 +55,6 @@ export const Login: React.FC = () => {
             <CardDescription className="text-slate-400">
               Secure access to your encrypted workspace.
             </CardDescription>
-            <p className="text-xs text-slate-500 pt-1">{BRAND.companyLine}</p>
           </CardHeader>
           <CardContent>
             <Form {...form}>

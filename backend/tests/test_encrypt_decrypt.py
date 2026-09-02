@@ -64,7 +64,15 @@ def test_encrypt_decrypt_api_roundtrip(client, auth_headers):
     meta = enc.json()
     assert meta["original_name"] == "note.txt"
     assert meta["file_size_bytes"] > 0
+    assert meta["pipeline"] is not None
+    assert len(meta["pipeline"]["salt_hex"]) == 32
+    assert len(meta["pipeline"]["nonce_hex"]) == 24
+    assert meta["pipeline"]["algorithm"]
     file_id = meta["id"]
+
+    header = client.get(f"/api/v1/files/{file_id}/container-meta", headers=headers)
+    assert header.status_code == 200, header.text
+    assert header.json()["salt_hex"] == meta["pipeline"]["salt_hex"]
 
     history = client.get("/api/v1/files/history", headers=headers)
     assert history.status_code == 200
@@ -93,6 +101,7 @@ def test_encrypt_decrypt_api_roundtrip(client, auth_headers):
     )
     assert good.status_code == 200
     assert good.content == content
+    assert "x-aryacrypt-pipeline" in good.headers
 
     stats3 = client.get("/api/v1/files/stats", headers=headers)
     assert stats3.json()["total_decrypted"] >= 1

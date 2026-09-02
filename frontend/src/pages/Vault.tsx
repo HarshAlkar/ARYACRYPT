@@ -107,7 +107,7 @@ export const Vault: React.FC = () => {
               My Vault
             </h1>
             <p className="text-slate-400 mt-1">Manage, download, or decrypt your encrypted payload history.</p>
-            <p className="text-xs text-slate-600 mt-1">ARYACRYPT · A TIVRA Technology</p>
+            <p className="text-xs text-slate-600 mt-1">ARYACRYPT v1.1.0</p>
           </div>
           
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">

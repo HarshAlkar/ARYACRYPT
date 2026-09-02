@@ -31,6 +31,7 @@ def setup_middleware(app):
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         allow_headers=["Authorization", "Content-Type", "Accept", "X-Requested-With"],
+        expose_headers=["X-AryaCrypt-Pipeline", "Content-Disposition", "X-Process-Time"],
     )
 
     app.add_middleware(RateLimitMiddleware)

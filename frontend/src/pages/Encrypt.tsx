@@ -1,11 +1,22 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, ShieldCheck, Download, AlertTriangle, ArrowRight } from 'lucide-react';
 import { DashboardLayout } from '../layouts/DashboardLayout';
 import { Card } from '@/components/ui/card';
 import { DragDropZone } from '../components/ui/DragDropZone';
 import { PasswordInput } from '../components/ui/PasswordInput';
+import { PipelineVisualizer } from '../components/crypto/PipelineVisualizer';
 import { fileService, type FileResponseDTO } from '../services/file.service';
+import { transformPassword } from '@/crypto/aryabhata';
+import {
+  activateStep,
+  buildEncryptSteps,
+  failActiveStep,
+  fillEncryptPipeline,
+  type PipelineStep,
+} from '@/crypto/pipeline';
+
+const ENCRYPT_PLAYBACK = ['salt', 'pbkdf2', 'aes', 'pack'] as const;
 
 export const Encrypt: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -14,67 +25,76 @@ export const Encrypt: React.FC = () => {
   const [progress, setProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState('');
   const [result, setResult] = useState<FileResponseDTO | null>(null);
-  const [loadingText, setLoadingText] = useState("Initializing cryptographic engine...");
+  const [steps, setSteps] = useState<PipelineStep[]>([]);
+  const [loadingText, setLoadingText] = useState('Initializing cryptographic engine...');
+  const playRef = useRef<number | null>(null);
+
+  const stopPlayback = () => {
+    if (playRef.current) {
+      window.clearInterval(playRef.current);
+      playRef.current = null;
+    }
+  };
 
   const handleEncrypt = async () => {
     if (!file || !password) return;
-    
+
+    let pipelineSteps: PipelineStep[];
+    try {
+      const prep = transformPassword(password);
+      pipelineSteps = buildEncryptSteps(prep, file.name, file.size);
+    } catch (err: any) {
+      setStatus('error');
+      setErrorMessage(err?.message || 'Password preprocessing failed.');
+      return;
+    }
+
+    setSteps(pipelineSteps);
     setStatus('encrypting');
-    setProgress(0);
+    setProgress(12);
     setErrorMessage('');
-    
-    // Simulate progress steps for the visualizer
-    const progressInterval = setInterval(() => {
-      setProgress(p => {
-        if (p < 15) {
-          setLoadingText("Aryabhata: password → numeric seed...");
-          return p + 4;
-        }
-        if (p < 35) {
-          setLoadingText("Aryabhata: Base-100 Σ rᵢ·100ⁱ decomposition...");
-          return p + 3;
-        }
-        if (p < 55) {
-          setLoadingText("Aryabhata: Varga/Avarga Roman-Sanskrit mapping...");
-          return p + 2;
-        }
-        if (p < 75) {
-          setLoadingText("PBKDF2-HMAC-SHA256 (600k) from AryaCrypt stream...");
-          return p + 1.5;
-        }
-        if (p < 95) {
-          setLoadingText("Streaming AES-256-GCM + Auth Tag...");
-          return p + 0.5;
-        }
-        return p;
-      });
-    }, 150);
+    setLoadingText('Aryabhata: password → numeric seed → phonetic stream');
+
+    let playIndex = 0;
+    playRef.current = window.setInterval(() => {
+      const id = ENCRYPT_PLAYBACK[Math.min(playIndex, ENCRYPT_PLAYBACK.length - 1)];
+      setSteps((prev) => activateStep(prev, id));
+      setProgress((p) => Math.min(92, p + 10));
+      if (id === 'salt') setLoadingText('Generating 16-byte salt + 12-byte nonce...');
+      if (id === 'pbkdf2') setLoadingText('PBKDF2-HMAC-SHA256 (600,000 iterations) from AryaCrypt stream...');
+      if (id === 'aes') setLoadingText('Streaming AES-256-GCM + auth tag...');
+      if (id === 'pack') setLoadingText('Packing ARYA header + ciphertext into .arya...');
+      playIndex += 1;
+    }, 850);
 
     try {
       const response = await fileService.encryptFile(file, password);
-      clearInterval(progressInterval);
+      stopPlayback();
       setProgress(100);
-      setLoadingText("Finalizing secure vault storage...");
-      
-      // Brief delay for UX so they see 100%
-      setTimeout(() => {
-        setResult(response);
-        setStatus('success');
-      }, 600);
-      
+      setLoadingText('Vault write complete.');
+      if (response.pipeline) {
+        setSteps(fillEncryptPipeline(pipelineSteps, response.pipeline));
+      } else {
+        setSteps(pipelineSteps.map((s) => ({ ...s, status: 'done' as const })));
+      }
+      setResult(response);
+      setStatus('success');
     } catch (err: any) {
-      clearInterval(progressInterval);
+      stopPlayback();
       setStatus('error');
-      setErrorMessage(err.response?.data?.detail || "Encryption failed due to an unknown error.");
+      setSteps((prev) => failActiveStep(prev, err.response?.data?.detail || 'Encryption failed.'));
+      setErrorMessage(err.response?.data?.detail || 'Encryption failed due to an unknown error.');
     }
   };
 
   const resetState = () => {
+    stopPlayback();
     setFile(null);
     setPassword('');
     setStatus('idle');
     setProgress(0);
     setResult(null);
+    setSteps([]);
   };
 
   const handleDownload = async () => {
@@ -89,9 +109,8 @@ export const Encrypt: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="max-w-4xl mx-auto flex flex-col gap-8 h-full min-h-[calc(100vh-8rem)] justify-center">
-        
-        <div className="text-center space-y-2 mb-4">
+      <div className="max-w-3xl mx-auto flex flex-col gap-8 pb-12">
+        <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold text-white flex items-center justify-center gap-3">
             <Lock className="w-8 h-8 text-sky-400" />
             Secure Encryption
@@ -104,10 +123,8 @@ export const Encrypt: React.FC = () => {
         </div>
 
         <AnimatePresence mode="wait">
-          
-          {/* IDLE STATE */}
           {status === 'idle' && (
-            <motion.div 
+            <motion.div
               key="idle"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -120,17 +137,17 @@ export const Encrypt: React.FC = () => {
 
               <AnimatePresence>
                 {file && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
                     className="md:col-span-2 space-y-6 overflow-hidden"
                   >
                     <Card className="p-6">
-                      <PasswordInput 
-                        value={password} 
-                        onChange={setPassword} 
-                        showStrengthMeter={true} 
+                      <PasswordInput
+                        value={password}
+                        onChange={setPassword}
+                        showStrengthMeter={true}
                         label="Encryption Password"
                         placeholder="Enter a strong password to lock this file..."
                       />
@@ -155,64 +172,31 @@ export const Encrypt: React.FC = () => {
             </motion.div>
           )}
 
-          {/* ENCRYPTING STATE (Framework Visualization) */}
           {status === 'encrypting' && (
-            <motion.div 
-              key="encrypting"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 1.05 }}
-              className="flex justify-center"
-            >
-              <Card className="p-12 flex flex-col items-center max-w-lg w-full text-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-b from-sky-500/5 to-transparent pointer-events-none" />
-                
-                <div className="relative w-32 h-32 flex items-center justify-center mb-8">
-                  <div className="absolute inset-0 rounded-full border-2 border-slate-800" />
-                  <motion.div 
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                    className="absolute inset-0 rounded-full border-t-2 border-r-2 border-sky-400"
-                  />
-                  <motion.div 
-                    animate={{ rotate: -360 }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                    className="absolute inset-4 rounded-full border-b-2 border-l-2 border-purple-500"
-                  />
-                  <Lock className="w-10 h-10 text-sky-400 animate-pulse" />
-                </div>
-
-                <h3 className="text-xl font-bold text-slate-200 mb-2">Securing Payload</h3>
-                <p className="text-sky-400 text-sm h-6 font-mono">{loadingText}</p>
-
-                <div className="w-full bg-slate-800/50 rounded-full h-2 mt-8 overflow-hidden relative">
-                  <motion.div 
-                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-sky-500 to-purple-500"
-                    animate={{ width: `${progress}%` }}
-                    transition={{ ease: "easeOut" }}
-                  />
-                </div>
-                <div className="w-full flex justify-between text-xs text-slate-500 mt-2 font-mono">
-                  <span>0%</span>
-                  <span>{Math.round(progress)}%</span>
-                </div>
-              </Card>
+            <motion.div key="encrypting" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <PipelineVisualizer
+                title="Encryption pipeline"
+                subtitle={loadingText}
+                steps={steps}
+                progress={progress}
+                accent="sky"
+                footer="password -> NFC -> Aryabhata stream -> PBKDF2 -> AES-256-GCM -> .arya"
+              />
             </motion.div>
           )}
 
-          {/* SUCCESS STATE */}
           {status === 'success' && result && (
-            <motion.div 
+            <motion.div
               key="success"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex justify-center"
+              className="flex flex-col gap-6"
             >
-              <Card className="p-8 max-w-lg w-full flex flex-col items-center text-center border-emerald-500/30 bg-emerald-500/5">
+              <Card className="p-8 w-full flex flex-col items-center text-center border-emerald-500/30 bg-emerald-500/5">
                 <div className="w-20 h-20 rounded-full bg-emerald-500/20 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(16,185,129,0.3)]">
                   <ShieldCheck className="w-10 h-10 text-emerald-400" />
                 </div>
-                
+
                 <h3 className="text-2xl font-bold text-emerald-400 mb-2">Encryption Successful</h3>
                 <p className="text-slate-300 mb-8">
                   Your file has been secured and stored in the AryaCrypt vault.
@@ -234,13 +218,13 @@ export const Encrypt: React.FC = () => {
                 </div>
 
                 <div className="w-full flex gap-4">
-                  <button 
+                  <button
                     onClick={resetState}
                     className="flex-1 py-3 px-4 rounded-lg font-medium text-slate-300 bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
                   >
                     Encrypt Another
                   </button>
-                  <button 
+                  <button
                     onClick={handleDownload}
                     className="flex-1 py-3 px-4 rounded-lg font-medium text-white bg-emerald-600 hover:bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)] transition-all flex items-center justify-center gap-2"
                   >
@@ -249,26 +233,33 @@ export const Encrypt: React.FC = () => {
                   </button>
                 </div>
               </Card>
+
+              {steps.length > 0 && (
+                <PipelineVisualizer
+                  title="How this file was encrypted"
+                  steps={steps}
+                  progress={100}
+                  accent="sky"
+                  footer="password -> NFC -> Aryabhata stream -> PBKDF2 -> AES-256-GCM -> .arya"
+                />
+              )}
             </motion.div>
           )}
 
-          {/* ERROR STATE */}
           {status === 'error' && (
-            <motion.div 
-              key="error"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex justify-center"
-            >
-              <Card className="p-8 max-w-lg w-full flex flex-col items-center text-center border-rose-500/30 bg-rose-500/5">
+            <motion.div key="error" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col gap-6">
+              {steps.length > 0 && (
+                <PipelineVisualizer title="Encryption pipeline" steps={steps} accent="sky" />
+              )}
+              <Card className="p-8 w-full flex flex-col items-center text-center border-rose-500/30 bg-rose-500/5">
                 <div className="w-16 h-16 rounded-full bg-rose-500/20 flex items-center justify-center mb-6">
                   <AlertTriangle className="w-8 h-8 text-rose-400" />
                 </div>
-                
+
                 <h3 className="text-xl font-bold text-rose-400 mb-2">Encryption Failed</h3>
                 <p className="text-slate-300 mb-8">{errorMessage}</p>
 
-                <button 
+                <button
                   onClick={() => setStatus('idle')}
                   className="w-full py-3 rounded-lg font-medium text-white bg-rose-600 hover:bg-rose-500 transition-colors flex items-center justify-center gap-2"
                 >
@@ -277,7 +268,6 @@ export const Encrypt: React.FC = () => {
               </Card>
             </motion.div>
           )}
-
         </AnimatePresence>
       </div>
     </DashboardLayout>

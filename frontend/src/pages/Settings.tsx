@@ -19,7 +19,7 @@ import {
   type UserProfile,
   type UserPrefs,
 } from '@/services/auth.service';
-import { BRAND, COMPANY_NAME, PRODUCT_NAME, PRODUCT_TAGLINE } from '@/brand/constants';
+import { BRAND, PRODUCT_NAME, PRODUCT_TAGLINE } from '@/brand/constants';
 
 export function Settings() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -287,14 +287,11 @@ export function Settings() {
             <div className="space-y-3 text-sm">
               <p className="text-xl font-bold tracking-tight text-slate-100">{PRODUCT_NAME}</p>
               <p className="text-slate-400">{PRODUCT_TAGLINE}</p>
-              <p className="text-slate-500">Developed by {COMPANY_NAME}</p>
-              <p className="text-slate-500">{BRAND.creator}</p>
               <div className="pt-3 border-t border-white/10 flex flex-col gap-1">
                 <p className="text-slate-500">
                   Framework version:{' '}
                   <span className="font-mono text-slate-300">{BRAND.version}</span>
                 </p>
-                <p className="text-xs text-slate-600">{BRAND.companyLine}</p>
               </div>
             </div>
           </Card>

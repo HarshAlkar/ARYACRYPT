@@ -1,4 +1,5 @@
 import { api } from './api';
+import type { ContainerPipeline } from '@/crypto/pipeline';
 
 export interface FileResponseDTO {
   id: string;
@@ -6,6 +7,7 @@ export interface FileResponseDTO {
   encrypted_name: string;
   file_size_bytes: number;
   created_at: string;
+  pipeline?: ContainerPipeline | null;
 }
 
 export interface ActivityItem {
@@ -59,11 +61,12 @@ export const fileService = {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      timeout: 120_000,
     });
     return response.data;
   },
 
-  decryptFile: async (file: File, password: string): Promise<Blob> => {
+  decryptFile: async (file: File, password: string): Promise<{ blob: Blob; pipeline: ContainerPipeline | null }> => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('password', password);
@@ -73,15 +76,16 @@ export const fileService = {
         'Content-Type': 'multipart/form-data',
       },
       responseType: 'blob',
+      timeout: 120_000,
     });
-    return response.data;
+    return { blob: response.data, pipeline: decodePipelineHeader(response.headers) };
   },
 
   deleteFile: async (id: string): Promise<void> => {
     await api.delete(`/files/${id}`);
   },
 
-  decryptVaultFile: async (id: string, password: string): Promise<Blob> => {
+  decryptVaultFile: async (id: string, password: string): Promise<{ blob: Blob; pipeline: ContainerPipeline | null }> => {
     const formData = new FormData();
     formData.append('password', password);
 
@@ -90,7 +94,13 @@ export const fileService = {
         'Content-Type': 'multipart/form-data',
       },
       responseType: 'blob',
+      timeout: 120_000,
     });
+    return { blob: response.data, pipeline: decodePipelineHeader(response.headers) };
+  },
+
+  getContainerMeta: async (id: string): Promise<ContainerPipeline> => {
+    const response = await api.get(`/files/${id}/container-meta`);
     return response.data;
   },
 
@@ -109,3 +119,17 @@ export const fileService = {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   },
 };
+
+function decodePipelineHeader(headers: unknown): ContainerPipeline | null {
+  if (!headers || typeof headers !== 'object') return null;
+  const h = headers as { get?: (name: string) => string | undefined; [key: string]: unknown };
+  const raw =
+    (typeof h.get === 'function' ? h.get('x-aryacrypt-pipeline') : undefined) ??
+    (typeof h['x-aryacrypt-pipeline'] === 'string' ? h['x-aryacrypt-pipeline'] : undefined);
+  if (!raw) return null;
+  try {
+    return JSON.parse(atob(raw)) as ContainerPipeline;
+  } catch {
+    return null;
+  }
+}

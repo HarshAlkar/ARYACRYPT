@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { BrandLockup } from '@/components/brand/BrandLockup';
-import { BRAND, COMPANY_NAME, PRODUCT_NAME_DISPLAY } from '@/brand/constants';
+import { BRAND, PRODUCT_NAME_DISPLAY } from '@/brand/constants';
 
 const fade = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } };
 
@@ -165,26 +165,6 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* About TIVRA + Creator */}
-      <section className="border-t border-border/40 py-20 bg-card/20">
-        <div className="container mx-auto px-4 max-w-3xl grid gap-10 sm:grid-cols-2">
-          <div>
-            <h2 className="text-xl font-bold text-slate-100 mb-3">About {COMPANY_NAME}</h2>
-            <p className="text-slate-400 text-sm leading-relaxed">
-              {COMPANY_NAME} is a technology studio building research-oriented security and
-              developer tools. AryaCrypt is published as {BRAND.companyLine}.
-            </p>
-            <p className="mt-3 text-xs tracking-wide text-sky-400/80">{BRAND.companyLine}</p>
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-slate-100 mb-3">Creator</h2>
-            <p className="text-slate-400 text-sm leading-relaxed">
-              {BRAND.creator}. Founder attribution for the AryaCrypt framework and related
-              research — distinct from the primary product identity.
-            </p>
-          </div>
-        </div>
-      </section>
     </div>
   );
 };

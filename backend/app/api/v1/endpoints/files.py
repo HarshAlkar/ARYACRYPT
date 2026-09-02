@@ -2,6 +2,7 @@ import os
 import shutil
 import uuid
 import base64
+import json
 import time
 from pathlib import Path
 from typing import Any, BinaryIO, List
@@ -38,8 +39,11 @@ from aryacrypt import kdf as arya_kdf
 from aryacrypt import preprocess as arya_preprocess
 from aryacrypt.constants import (
     ALGORITHM_ID,
+    FRAMEWORK_VERSION,
+    KEY_LENGTH_BYTES,
     MIN_PASSWORD_LENGTH,
     NONCE_LENGTH_BYTES,
+    PBKDF2_ITERATIONS,
     SALT_LENGTH_BYTES,
 )
 from aryacrypt.errors import AuthenticationError as AryaAuthError
@@ -137,6 +141,24 @@ def _derive_key_from_password(
 # ---------------------------------------------------------
 # Pydantic Response DTOs
 # ---------------------------------------------------------
+class PipelineTrace(BaseModel):
+    """Public .arya header telemetry for the website pipeline visualizer.
+
+    Never includes the password, Aryabhata stream, or AES key.
+    Salt / nonce / tag are already stored in the downloadable container.
+    """
+    salt_hex: str
+    nonce_hex: str
+    auth_tag_hex: str
+    algorithm: str
+    framework_version: str = FRAMEWORK_VERSION
+    pbkdf2_iterations: int = PBKDF2_ITERATIONS
+    key_length_bytes: int = KEY_LENGTH_BYTES
+    header_bytes: int
+    ciphertext_bytes: int
+    total_bytes: int
+
+
 class FileResponseDTO(BaseModel):
     """
     Data Transfer Object to safely serialize file metadata to the client 
@@ -147,8 +169,39 @@ class FileResponseDTO(BaseModel):
     encrypted_name: str
     file_size_bytes: int
     created_at: datetime
+    pipeline: PipelineTrace | None = None
     
     model_config = ConfigDict(from_attributes=True)
+
+
+def _pipeline_trace(metadata: dict, header_len: int, total_bytes: int) -> PipelineTrace:
+    salt = base64.b64decode(metadata["salt"])
+    nonce = base64.b64decode(metadata["nonce"])
+    tag = base64.b64decode(metadata["auth_tag"])
+    return PipelineTrace(
+        salt_hex=salt.hex(),
+        nonce_hex=nonce.hex(),
+        auth_tag_hex=tag.hex(),
+        algorithm=metadata.get("algorithm", ALGORITHM_ID),
+        framework_version=metadata.get("framework_version", FRAMEWORK_VERSION),
+        header_bytes=header_len,
+        ciphertext_bytes=max(0, int(total_bytes) - header_len),
+        total_bytes=int(total_bytes),
+    )
+
+
+def _pipeline_response_headers(trace: PipelineTrace) -> dict[str, str]:
+    payload = base64.b64encode(
+        json.dumps(trace.model_dump(), separators=(",", ":")).encode("utf-8")
+    ).decode("ascii")
+    return {"X-AryaCrypt-Pipeline": payload}
+
+
+def _read_container_meta(path: Path) -> PipelineTrace:
+    total = path.stat().st_size
+    with open(path, "rb") as f:
+        metadata, header_len = arya_format.deserialize_from_stream(f)
+    return _pipeline_trace(metadata, header_len, total)
 
 
 # ---------------------------------------------------------
@@ -281,7 +334,17 @@ def encrypt_and_store_file(
             ALGORITHM_ID,
             duration_ms,
         )
-        return db_file
+        dto = FileResponseDTO.model_validate(db_file)
+        dto.pipeline = PipelineTrace(
+            salt_hex=salt.hex(),
+            nonce_hex=nonce.hex(),
+            auth_tag_hex=tag.hex(),
+            algorithm=ALGORITHM_ID,
+            header_bytes=len(header_bytes),
+            ciphertext_bytes=max(0, file_size - len(header_bytes)),
+            total_bytes=file_size,
+        )
+        return dto
 
     except HTTPException:
         raise
@@ -341,7 +404,8 @@ def _decrypt_arya_stream_to_temp(
     source_label: str,
     user_id,
     storage_dir: Path,
-) -> Path:
+    container_size: int | None = None,
+) -> tuple[Path, PipelineTrace]:
     """
     Shared decrypt core: parse ARYA header, Aryabhata/legacy KDF, AES-GCM verify.
     Returns path to a temp plaintext file.
@@ -359,7 +423,7 @@ def _decrypt_arya_stream_to_temp(
             source_label,
         )
 
-        metadata, _header_len = arya_format.deserialize_from_stream(in_stream)
+        metadata, header_len = arya_format.deserialize_from_stream(in_stream)
         algorithm = metadata.get("algorithm", ALGORITHM_ID)
         use_aryabhata = arya_preprocess.uses_aryabhata(algorithm)
 
@@ -388,7 +452,12 @@ def _decrypt_arya_stream_to_temp(
             user_id,
             algorithm,
         )
-        return temp_decrypted_path
+        total = container_size
+        if total is None:
+            total = getattr(in_stream, "_bytes_read", None)
+        if total is None:
+            total = header_len
+        return temp_decrypted_path, _pipeline_trace(metadata, header_len, int(total))
 
     except HTTPException:
         logger.info(
@@ -475,7 +544,7 @@ def decrypt_file(
     limited_in = LimitedReader(file.file, MAX_UPLOAD_SIZE)
 
     try:
-        temp_decrypted_path = _decrypt_arya_stream_to_temp(
+        temp_decrypted_path, pipeline = _decrypt_arya_stream_to_temp(
             in_stream=limited_in,
             password=password,
             source_label=file.filename,
@@ -511,7 +580,8 @@ def decrypt_file(
     return FileResponse(
         path=temp_decrypted_path,
         filename=original_filename,
-        media_type="application/octet-stream"
+        media_type="application/octet-stream",
+        headers=_pipeline_response_headers(pipeline),
     )
 
 
@@ -549,12 +619,13 @@ def decrypt_vault_file(
     started = time.perf_counter()
     try:
         with open(storage_path, "rb") as in_stream:
-            temp_decrypted_path = _decrypt_arya_stream_to_temp(
+            temp_decrypted_path, pipeline = _decrypt_arya_stream_to_temp(
                 in_stream=in_stream,
                 password=password,
                 source_label=f"vault:{file_id}",
                 user_id=current_user.id,
                 storage_dir=storage_dir,
+                container_size=storage_path.stat().st_size,
             )
     except HTTPException as exc:
         if exc.status_code in (401, 400, 413):
@@ -588,6 +659,7 @@ def decrypt_vault_file(
         path=temp_decrypted_path,
         filename=file_record.original_name,
         media_type="application/octet-stream",
+        headers=_pipeline_response_headers(pipeline),
     )
 
 
@@ -803,6 +875,35 @@ def get_vault_stats(
         processing=processing,
         success_rate=SuccessRate(success=success_count, failure=failure_count),
     )
+
+
+@router.get("/{file_id}/container-meta", response_model=PipelineTrace)
+def get_container_meta(
+    file_id: str,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+) -> Any:
+    """Return public .arya header fields (salt/nonce/tag) for the pipeline UI."""
+    try:
+        uuid_obj = UUID(file_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid file ID format (must be UUID).")
+
+    file_record = db.query(DBFile).filter(
+        DBFile.id == uuid_obj,
+        DBFile.user_id == current_user.id,
+    ).first()
+    if not file_record:
+        raise HTTPException(status_code=404, detail="File record not found or access denied.")
+
+    storage_path = _resolve_under_upload_dir(file_record.storage_path)
+    if not storage_path.exists():
+        raise HTTPException(status_code=404, detail="Encrypted file missing from vault storage.")
+
+    try:
+        return _read_container_meta(storage_path)
+    except AryaFormatError as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid file format: {str(exc)}") from exc
 
 
 @router.get("/{file_id}/download")

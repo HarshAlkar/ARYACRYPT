@@ -16,7 +16,6 @@ export function SiteFooter({ className = "" }: SiteFooterProps) {
             {BRAND.product}
           </p>
           <p className="text-sm text-slate-500">{BRAND.footerBlurb}</p>
-          <p className="text-xs text-slate-600">{BRAND.creator}</p>
         </div>
         <p className="text-xs text-slate-600 md:text-right">{BRAND.copyright}</p>
       </div>
