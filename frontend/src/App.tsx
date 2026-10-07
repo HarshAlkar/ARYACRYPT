@@ -9,7 +9,6 @@ import { Vault } from './pages/Vault';
 import { Encrypt } from './pages/Encrypt';
 import { Settings } from './pages/Settings';
 import { Analytics } from './pages/Analytics';
-import { MainLayout } from './layouts/MainLayout';
 import { authService } from './services/auth.service';
 import { getAccessToken } from './services/tokenStore';
 
@@ -62,9 +61,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<LandingPage />} />
-        </Route>
+        <Route path="/" element={<LandingPage />} />
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
